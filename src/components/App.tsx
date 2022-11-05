@@ -487,6 +487,10 @@ class App extends React.Component<AppProps, AppState> {
           }}
           width={canvasWidth}
           height={canvasHeight}
+          // 通过回调函数为 canvas 添加监听事件
+          // 在组件挂载时传入 DOM 元素
+          // 在组件卸载时传入 null
+          // 在 componentDidMount 或 componentDidUpdate 生命周期钩子触发前更新。
           ref={this.handleCanvasRef}
           onContextMenu={this.handleCanvasContextMenu}
           onPointerMove={this.handleCanvasPointerMove}
@@ -5630,10 +5634,17 @@ class App extends React.Component<AppProps, AppState> {
 
   private handleCanvasRef = (canvas: HTMLCanvasElement) => {
     // canvas is null when unmounting
+    // canvas: AppClassProperties["canvas"] = null;
+    // 当卸载时 canvas 为空
     if (canvas !== null) {
+      // 将 canvas DOM 元素赋值给类属性 canvas
       this.canvas = canvas;
+      // 调用 rough.js 库，将生成的示例对象赋值给类属性的 rc
       this.rc = rough.canvas(this.canvas);
 
+      // 滚轮滚动或类似的其他设备
+      // 根据规范，addEventListener() 的 passive 默认值始终为 false
+      // TODO 默认为 false 为什么还要再设定一次 false？
       this.canvas.addEventListener(EVENT.WHEEL, this.handleWheel, {
         passive: false,
       });
@@ -6129,29 +6140,52 @@ class App extends React.Component<AppProps, AppState> {
     }
   };
 
+  // wheel 事件触发此函数
   private handleWheel = withBatchedUpdates((event: WheelEvent) => {
     event.preventDefault();
+    // let isPanning: boolean = false;
+    // 此文件全局变量
     if (isPanning) {
       return;
     }
 
+    // deltaX 只读属性是一个 double 类型值，声明水平滚动量以WheelEvent.deltaMode 为单位。
+    // deltaY 只读属性是一个 double 类型值，声明垂直滚动量以 WheelEvent.deltaMode 为单位。
+    // 非平滑滚轮灵敏度为 125px
     const { deltaX, deltaY } = event;
     // note that event.ctrlKey is necessary to handle pinch zooming
+    // WheelEvent 继承自 MouseEvent
+    // MouseEvent.metaKey 为只读属性，返回一个布尔值，在鼠标事件发生时，用于指示 Meta 键是按下状态（true），还是释放状态（false）。
+    // Meta 键在 MAC 键盘上，表示 Command 键（⌘），在 Windows 键盘上，表示 Windows 键（⊞）。
     if (event.metaKey || event.ctrlKey) {
+      // Math.sign() 返回一个数的符号
+      // 返回值为 1，-1，0，-0，NaN
       const sign = Math.sign(deltaY);
+      // export const ZOOM_STEP = 0.1;
+      // TODO 单位为微秒，对此表示疑问
       const MAX_STEP = ZOOM_STEP * 100;
       const absDelta = Math.abs(deltaY);
       let delta = deltaY;
+      // 将 delta 的取值范围限定在 [-10,10] 以内
+      // 即 if delta > 10 -> delta = 10
+      // if delta < -10 -> delta = -10
       if (absDelta > MAX_STEP) {
         delta = MAX_STEP * sign;
       }
 
+      // export type Zoom = Readonly<{
+      //   value: NormalizedZoomValue;
+      // }>;
+      // zoom.value 为缩放百分比，显示时四舍五入
+      // deltaY 为整数时，即滚轮向下滑动，缩小 zoom out
       let newZoom = this.state.zoom.value - delta / 100;
       // increase zoom steps the more zoomed-in we are (applies to >100% only)
+      // 越放大 zoom step 越大，只对放大倍数大于 100% 时起作用
       newZoom +=
         Math.log10(Math.max(1, this.state.zoom.value)) *
         -sign *
         // reduced amplification for small deltas (small movements on a trackpad)
+        // 对于较小的 delta （如触摸板上的微小移动）减小增加量
         Math.min(1, absDelta / 20);
 
       this.setState((state) => ({
