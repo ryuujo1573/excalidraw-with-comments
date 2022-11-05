@@ -374,6 +374,8 @@ class App extends React.Component<AppProps, AppState> {
     const defaultAppState = getDefaultAppState();
     const {
       excalidrawRef,
+      // 来自于 ExcalidrawBase 组件的 props，但是父组件 Excalidraw 并没有传递该属性
+      // 并且没有更改该属性的相关方法
       viewModeEnabled = false,
       zenModeEnabled = false,
       gridModeEnabled = false,
@@ -389,7 +391,9 @@ class App extends React.Component<AppProps, AppState> {
       zenModeEnabled,
       gridSize: gridModeEnabled ? GRID_SIZE : null,
       name,
+      // 以像素为单位的窗口的内部宽度。如果垂直滚动条存在，则这个属性将包括它的宽度。
       width: window.innerWidth,
+      // 浏览器窗口的视口（viewport）高度（以像素为单位）；如果有水平滚动条，也包括滚动条高度。
       height: window.innerHeight,
       showHyperlinkPopup: false,
       isSidebarDocked: false,
@@ -453,15 +457,24 @@ class App extends React.Component<AppProps, AppState> {
     this.actionManager.registerAction(createRedoAction(this.history));
   }
 
+  // 返回 canvas 标签的私有方法
   private renderCanvas() {
+    // 返回当前显示设备的物理像素分辨率与 CSS 像素分辨率之比
     const canvasScale = window.devicePixelRatio;
     const {
+      // this.state.width = window.innerWidth 重命名为 canvasDOMWidth
       width: canvasDOMWidth,
+      // this.state.height = window.innerHeight 重命名为 canvasDOMHeight
       height: canvasDOMHeight,
       viewModeEnabled,
     } = this.state;
+    // canvas 标签的 width height 属性控制的是 canvas 元素本身的宽高和 canvas 画布宽高
+    // css 设置的 width height 只控制 canvas 元素本身的宽高，不会改变 canvas 画布的宽高
+    // window.innerWidth/Height 对应的物理像素
+    // TODO 为什么要将 canvas 的画布大小设置为物理像素大小？
     const canvasWidth = canvasDOMWidth * canvasScale;
     const canvasHeight = canvasDOMHeight * canvasScale;
+    // 根据是否处于旁观模式决定返回的 canvas
     if (viewModeEnabled) {
       return (
         <canvas
@@ -469,6 +482,7 @@ class App extends React.Component<AppProps, AppState> {
           style={{
             width: canvasDOMWidth,
             height: canvasDOMHeight,
+            // 将鼠标设定为 grab（按住空格时的小手手）
             cursor: CURSOR_TYPE.GRAB,
           }}
           width={canvasWidth}
@@ -497,6 +511,7 @@ class App extends React.Component<AppProps, AppState> {
         ref={this.handleCanvasRef}
         onContextMenu={this.handleCanvasContextMenu}
         onPointerDown={this.handleCanvasPointerDown}
+        // 比旁观模式多了个 doubleClick 事件监听
         onDoubleClick={this.handleCanvasDoubleClick}
         onPointerMove={this.handleCanvasPointerMove}
         onPointerUp={this.handleCanvasPointerUp}
@@ -600,6 +615,7 @@ class App extends React.Component<AppProps, AppState> {
                       closable={this.state.toast.closable}
                     />
                   )}
+                  {/* 调用私有 renderCanvas 方法返回 canvas 标签 */}
                   <main>{this.renderCanvas()}</main>
                 </ExcalidrawElementsContext.Provider>{" "}
               </ExcalidrawAppStateContext.Provider>

@@ -646,6 +646,7 @@ const ExcalidrawWrapper = () => {
         "is-collaborating": isCollaborating,
       })}
     >
+      {/* 该组件为 React.memo(forwardRef(),areEqual) */}
       <Excalidraw
         ref={excalidrawRefCallback}
         onChange={onChange}

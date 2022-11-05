@@ -182,11 +182,14 @@ const areEqual = (
   );
 };
 
+// 创建一个 React 组件，这个组件能够将其接受的 ref 属性转发到其组件树下的另一个组件中
+// jsx mixin 该组件时的 ref 属性会传递给箭头函数的 ref
 const forwardedRefComp = forwardRef<
   ExcalidrawAPIRefValue,
   PublicExcalidrawProps
 >((props, ref) => <ExcalidrawBase {...props} excalidrawRef={ref} />);
 
+// HOC，性能优化使用
 export const Excalidraw = React.memo(forwardedRefComp, areEqual);
 Excalidraw.displayName = "Excalidraw";
 
