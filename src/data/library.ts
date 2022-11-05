@@ -360,11 +360,14 @@ export const useHandleLibrary = ({
 }) => {
   const getInitialLibraryRef = useRef(getInitialLibraryItems);
 
+  // 随 excalidrawAPI 变化而触发，会进行下列操作
   useEffect(() => {
     if (!excalidrawAPI) {
       return;
     }
 
+    // 定义函数 从指定 URL 导入 Lib
+    // further-todo: 可以参考这部分的url
     const importLibraryFromURL = async ({
       libraryUrl,
       idToken,
@@ -416,8 +419,12 @@ export const useHandleLibrary = ({
         }
       }
     };
+
+    // 哈希值变动事件
     const onHashChange = (event: HashChangeEvent) => {
       event.preventDefault();
+
+      // 从 URL 获取 libUrl & idToken
       const libraryUrlTokens = parseLibraryTokensFromUrl();
       if (libraryUrlTokens) {
         event.stopImmediatePropagation();
@@ -426,14 +433,16 @@ export const useHandleLibrary = ({
         // and similar).
         // Using history API won't trigger another hashchange.
         window.history.replaceState({}, "", event.oldURL);
+        // 浏览器历史保留旧的 URL，从新 URL 尝试导入 lib
 
         importLibraryFromURL(libraryUrlTokens);
       }
     };
 
     // -------------------------------------------------------------------------
-    // ------ init load --------------------------------------------------------
+    // ------ 初始化 --------------------------------------------------------
     if (getInitialLibraryRef.current) {
+      // 更新 lib, 默认 items 来自 localStorage.
       excalidrawAPI.updateLibrary({
         libraryItems: getInitialLibraryRef.current(),
       });
@@ -441,13 +450,16 @@ export const useHandleLibrary = ({
 
     const libraryUrlTokens = parseLibraryTokensFromUrl();
 
+    // 如果初始的 URL 中包含 lib 的参数，则导入
     if (libraryUrlTokens) {
       importLibraryFromURL(libraryUrlTokens);
     }
     // --------------------------------------------------------- init load -----
 
+    // 监听 # 变动事件
     window.addEventListener(EVENT.HASHCHANGE, onHashChange);
     return () => {
+      // useEffect 销毁，移除时间监听
       window.removeEventListener(EVENT.HASHCHANGE, onHashChange);
     };
   }, [excalidrawAPI]);

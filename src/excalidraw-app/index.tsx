@@ -263,16 +263,19 @@ const ExcalidrawWrapper = () => {
     return isCollaborationLink(window.location.href);
   });
 
+  // Assets Library 相关
   useHandleLibrary({
     excalidrawAPI,
     getInitialLibraryItems: getLibraryItemsFromStorage,
   });
 
+  // useEffect 依赖于 [collabAPI, excalidrawAPI, setLangCode]
   useEffect(() => {
     if (!collabAPI || !excalidrawAPI) {
       return;
     }
 
+    // data: 场景的data, 由 initializeScene 返回的 promise 解析
     const loadImages = (
       data: ResolutionType<typeof initializeScene>,
       isInitialLoad = false,
@@ -280,6 +283,9 @@ const ExcalidrawWrapper = () => {
       if (!data.scene) {
         return;
       }
+
+      // 如果处于协作模式, 则从服务器拉取图片文件
+      // 添加到 drawAPI, 并更新过期的图片状态
       if (collabAPI.isCollaborating()) {
         if (data.scene.elements) {
           collabAPI
