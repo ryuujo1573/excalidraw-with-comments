@@ -488,15 +488,25 @@ class App extends React.Component<AppProps, AppState> {
           width={canvasWidth}
           height={canvasHeight}
           // 通过回调函数为 canvas 添加监听事件
-          // 在组件挂载时传入 DOM 元素
-          // 在组件卸载时传入 null
-          // 在 componentDidMount 或 componentDidUpdate 生命周期钩子触发前更新。
+          // 在组件挂载时调用回调函数传入 DOM 元素
+          // 在组件卸载时调用回调函数传入 null
+          // 在 componentDidMount 或 componentDidUpdate 触发前，React 会保证 refs 一定是最新的
           ref={this.handleCanvasRef}
+          // 通常在鼠标点击右键或者按下键盘上的菜单键时被触发
           onContextMenu={this.handleCanvasContextMenu}
+          // 当 pointer 改变坐标，并且没有被浏览器的 toucH-action 打断时触发
           onPointerMove={this.handleCanvasPointerMove}
+          // 当 pointer 不再处于 active 状态时触发
           onPointerUp={this.handleCanvasPointerUp}
+          // 当浏览器确定不太可能有其他的 pointer 事件，或者在 pointerdown 触发之后 pointer 通过平移（panning）缩放（zooming）滚动（scrolling）来操作视口（viewpoint）
+          // eg. 切换应用，返回桌面，当 pointer 处于 active 状态时改变屏幕朝向，使用手写笔时的手掌抑制（如 apple pencil），css 的 touch-action 属性
           onPointerCancel={this.removePointer}
+          // 当数个触点在触摸屏上移动时触发
           onTouchMove={this.handleTouchMove}
+          // 当 pointer 变成 active 状态时触发
+          // 对于鼠标来说，当设备从没有按下按钮到至少按下一个按钮时触发
+          // 对于触摸屏来说，当与 digitizer 物理接触的时候触发
+          // 对于笔来说，当与 digitizer 物理接触的时候触发
           onPointerDown={this.handleCanvasPointerDown}
         >
           {t("labels.drawingCanvas")}
@@ -5648,6 +5658,7 @@ class App extends React.Component<AppProps, AppState> {
       this.canvas.addEventListener(EVENT.WHEEL, this.handleWheel, {
         passive: false,
       });
+      // 触屏设备事件
       this.canvas.addEventListener(EVENT.TOUCH_START, this.onTapStart);
       this.canvas.addEventListener(EVENT.TOUCH_END, this.onTapEnd);
     } else {
@@ -5775,11 +5786,16 @@ class App extends React.Component<AppProps, AppState> {
     }
   };
 
+  // 在鼠标点击右键或者按下键盘上的菜单键时触发 ContextMenu 事件的处理回调函数
   private handleCanvasContextMenu = (
     event: React.PointerEvent<HTMLCanvasElement>,
   ) => {
     event.preventDefault();
 
+    // React.PointerEvent<HTMLCanvasElement>.nativeEvent 应该指原生的类型，而不是 react 定义的类型
+    // MouseEvent.button 返回一个值，代表用户按下并触发了事件的鼠标按键。
+    // MouseEvent.button===2 -> 次按键，通常指鼠标右键
+    // （pointer 为触屏设备 ||（pointer 为触控笔 && button 的值为 2
     if (
       (event.nativeEvent.pointerType === "touch" ||
         (event.nativeEvent.pointerType === "pen" &&
