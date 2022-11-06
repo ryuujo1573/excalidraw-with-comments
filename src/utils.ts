@@ -343,6 +343,7 @@ export const viewportCoordsToSceneCoords = (
     zoom,
     offsetLeft,
     offsetTop,
+    // default : scrollX: 0,scrollY: 0,
     scrollX,
     scrollY,
   }: {
@@ -353,6 +354,7 @@ export const viewportCoordsToSceneCoords = (
     scrollY: number;
   },
 ) => {
+  // TODO 暂时没看懂这个算法怎么算的
   const invScale = 1 / zoom.value;
   const x = (clientX - offsetLeft) * invScale - scrollX;
   const y = (clientY - offsetTop) * invScale - scrollY;
