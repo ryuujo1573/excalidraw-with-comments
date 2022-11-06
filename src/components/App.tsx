@@ -477,6 +477,7 @@ class App extends React.Component<AppProps, AppState> {
     // 根据是否处于旁观模式决定返回的 canvas
     if (viewModeEnabled) {
       return (
+        // TODO 所有的事件都无法在 devtools 里的事件监听器内查到
         <canvas
           className="excalidraw__canvas"
           style={{
@@ -3240,6 +3241,7 @@ class App extends React.Component<AppProps, AppState> {
   private handleCanvasPointerDown = (
     event: React.PointerEvent<HTMLCanvasElement>,
   ) => {
+    // 当开始和 canvas 交互的时候移除所有的处于 active 状态的 selection
     // remove any active selection when we start to interact with canvas
     // (mainly, we care about removing selection outside the component which
     //  would prevent our copy handling otherwise)
@@ -3247,9 +3249,15 @@ class App extends React.Component<AppProps, AppState> {
     if (selection?.anchorNode) {
       selection.removeAllRanges();
     }
+    // 触屏设备上因 contextmenu 触发问题需要在 pointerdown 事件内处理
+    // TODO 触屏设备代码
     this.maybeOpenContextMenuAfterPointerDownOnTouchDevices(event);
+    // 如果上一回触发了 pointerdown 但是没有触发 pointerup 事件，则清除（不知道清除对象）
+    // e.g. 触发 alert 或者 contextmenu
     this.maybeCleanupAfterMissingPointerUp(event);
 
+    // 仅触发一次，当 this.state.penDetected 为 false 且 用到了笔，则将 this.state.penMode/penDetected 设置为 true
+    // 用户可以通过切换 penMode 按钮来禁用
     //fires only once, if pen is detected, penMode is enabled
     //the user can disable this by toggling the penMode button
     if (!this.state.penDetected && event.pointerType === "pen") {
@@ -3261,31 +3269,55 @@ class App extends React.Component<AppProps, AppState> {
       });
     }
 
+    // const deviceContextInitialValue = {
+    //   isSmScreen: false,
+    //   isMobile: false,
+    //   isTouchScreen: false,
+    //   canDeviceFitSidebar: false,
+    // };
+    // export type Device = Readonly<{
+    //   isSmScreen: boolean;
+    //   isMobile: boolean;
+    //   isTouchScreen: boolean;
+    //   canDeviceFitSidebar: boolean;
+    // }>;
+    // device: Device = deviceContextInitialValue;
+
     if (
       !this.device.isTouchScreen &&
       ["pen", "touch"].includes(event.pointerType)
     ) {
+      // 用于不可变式更新对象
       this.device = updateObject(this.device, { isTouchScreen: true });
     }
 
+    // TODO 如果平移直接返回？
     if (isPanning) {
       return;
     }
 
     this.lastPointerDown = event;
     this.setState({
+      // default 为 mouse
       lastPointerDownWith: event.pointerType,
       cursorButton: "down",
     });
+    // 用于协作时保存更新 pointer
     this.savePointer(event.clientX, event.clientY, "down");
 
+    // 触发 pointerDown 的时候更新 gesture
     this.updateGestureOnPointerDown(event);
 
+    // 如果 isTextElement(this.state.editingElement) 为真或者 gesture.pointers.size <= 1 并且按下鼠标中键、按住空格按下鼠标左键、this.state.viewModeEnabled 为真，则由以下函数接管，进行平移操作
+    // TODO 画布平移操作
     if (this.handleCanvasPanUsingWheelOrSpaceDrag(event)) {
       return;
     }
 
     // only handle left mouse button or touch
+    // 如果按下的按键不是鼠标左键并且不是触摸
+    // TODO mdn 文档中鼠标左键、触摸接触、压感笔接触（无额外按钮被按压）时 button 为 0，与此处 POINTER_BUTTON.TOUCH = -1 不符
+    // button = -1 代表着自上次事件后，按键、触摸或笔的接触状态没有改变
     if (
       event.button !== POINTER_BUTTON.MAIN &&
       event.button !== POINTER_BUTTON.TOUCH
@@ -3294,6 +3326,7 @@ class App extends React.Component<AppProps, AppState> {
     }
 
     // don't select while panning
+    // gesture.pointer.size 大于 1 则直接返回
     if (gesture.pointers.size > 1) {
       return;
     }
@@ -3462,6 +3495,7 @@ class App extends React.Component<AppProps, AppState> {
     invalidateContextMenu = false;
   };
 
+  // 仅在 pointerdown 事件中调用该函数
   private maybeCleanupAfterMissingPointerUp(
     event: React.PointerEvent<HTMLCanvasElement>,
   ): void {
@@ -3477,6 +3511,9 @@ class App extends React.Component<AppProps, AppState> {
   private handleCanvasPanUsingWheelOrSpaceDrag = (
     event: React.PointerEvent<HTMLCanvasElement>,
   ): boolean => {
+    // TODO 测试此处 gesture.pointers.size 基本为1
+    // 当（！（gesture.pointers.size 小于等于 1 && （按下鼠标中键 || （按下鼠标左键 && 按住 space 键） || this.state.viewModeEnabled） || isTextElement)
+    // 当编辑文字时点击文字框以外 isTextElement(this.state.editingElement) 才会返回 true
     if (
       !(
         gesture.pointers.size <= 1 &&
@@ -3484,6 +3521,7 @@ class App extends React.Component<AppProps, AppState> {
           (event.button === POINTER_BUTTON.MAIN && isHoldingSpace) ||
           this.state.viewModeEnabled)
       ) ||
+      // 判断正在编辑的元素是不是 ExcalidrawTextElement
       isTextElement(this.state.editingElement)
     ) {
       return false;
@@ -3573,11 +3611,24 @@ class App extends React.Component<AppProps, AppState> {
   private updateGestureOnPointerDown(
     event: React.PointerEvent<HTMLCanvasElement>,
   ): void {
+    // export type Gesture = {
+    //   pointers: Map<number, PointerCoords>;
+    //   lastCenter: { x: number; y: number } | null;
+    //   initialDistance: number | null;
+    //   initialScale: number | null;
+    // };
+    // const gesture: Gesture = {
+    //   pointers: new Map(),
+    //   lastCenter: null,
+    //   initialDistance: null,
+    //   initialScale: null,
+    // };
     gesture.pointers.set(event.pointerId, {
       x: event.clientX,
       y: event.clientY,
     });
 
+    // TODO 测试发现好像都是 1
     if (gesture.pointers.size === 2) {
       gesture.lastCenter = getCenter(gesture.pointers);
       gesture.initialScale = this.state.zoom.value;
@@ -6273,6 +6324,8 @@ class App extends React.Component<AppProps, AppState> {
     if (!x || !y) {
       return;
     }
+    // 视口坐标 -> 屏幕坐标
+    // 返回值为 {x, y}
     const pointer = viewportCoordsToSceneCoords(
       { clientX: x, clientY: y },
       this.state,
@@ -6282,6 +6335,13 @@ class App extends React.Component<AppProps, AppState> {
       // sometimes the pointer goes off screen
     }
 
+    // onPointerUpdate?: (payload: {
+    //   pointer: { x: number; y: number };
+    //   button: "down" | "up";
+    //   pointersMap: Gesture["pointers"];
+    // }) => void;
+    // Excalidraw -> ExcalidrawBase -> App
+    // onPointerUpdate={collabAPI?.onPointerUpdate}
     this.props.onPointerUpdate?.({
       pointer,
       button,

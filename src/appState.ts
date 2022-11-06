@@ -85,6 +85,7 @@ export const getDefaultAppState = (): Omit<
     toast: null,
     viewBackgroundColor: oc.white,
     zenModeEnabled: false,
+    // 表示缩放倍数
     zoom: {
       value: 1 as NormalizedZoomValue,
     },
