@@ -622,6 +622,8 @@ export const wrapEvent = <T extends Event>(name: EVENT, nativeEvent: T) => {
   });
 };
 
+// 如果值未改变，则返回原对象
+// 如果值改变或 update 为 object，则返回 update 值后的新对象
 export const updateObject = <T extends Record<string, any>>(
   obj: T,
   updates: Partial<T>,
