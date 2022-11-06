@@ -3411,6 +3411,7 @@ class App extends React.Component<AppProps, AppState> {
       );
     }
 
+    // TODO 初步观察为 null，待 log 测试
     this.props?.onPointerDown?.(this.state.activeTool, pointerDownState);
 
     const onPointerMove =
