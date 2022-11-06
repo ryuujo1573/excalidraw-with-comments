@@ -489,6 +489,7 @@ export const withBatchedUpdates = <
     unstable_batchedUpdates(func as TFunction, event);
   }) as TFunction;
 
+// TODO 오타
 /**
  * barches React state updates and throttles the calls to a single call per
  * animation frame

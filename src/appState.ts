@@ -42,6 +42,7 @@ export const getDefaultAppState = (): Omit<
     editingElement: null,
     editingGroupId: null,
     editingLinearElement: null,
+    // 处于 active 状态的工具
     activeTool: {
       type: "selection",
       customType: null,
