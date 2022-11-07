@@ -215,6 +215,7 @@ export const removeSelection = () => {
 
 export const distance = (x: number, y: number) => Math.abs(x - y);
 
+// 根据 App.state 和升级的属性，返回升级后的属性
 export const updateActiveTool = (
   appState: Pick<AppState, "activeTool">,
   data: (

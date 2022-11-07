@@ -239,6 +239,9 @@ export const ShapesSwitcher = ({
           aria-keyshortcuts={shortcut}
           data-testid={`toolbar-${value}`}
           onPointerDown={({ pointerType }) => {
+            // pointerdown 事件
+            // 当未检测到笔且 pointerType 为 pen
+            // 则将 App.state 的 penDetected 和 penMode 设定为 true
             if (!appState.penDetected && pointerType === "pen") {
               setAppState({
                 penDetected: true,
@@ -246,13 +249,19 @@ export const ShapesSwitcher = ({
               });
             }
           }}
+          // 来源：App 组件
+          // setAppState: React.Component<any, AppState>["setState"] = (state) => {
+          //   this.setState(state);
+          // };
           onChange={({ pointerType }) => {
             if (appState.activeTool.type !== value) {
               trackEvent("toolbar", value, "ui");
             }
+            // 根据 App.state.activeTool 和要更新的参数返回一个新的 activeTool 对象
             const nextActiveTool = updateActiveTool(appState, {
               type: value,
             });
+            // 设置 App.state 为新的 activeTool
             setAppState({
               activeTool: nextActiveTool,
               multiElement: null,
