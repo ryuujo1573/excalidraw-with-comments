@@ -258,19 +258,34 @@ let eraserCanvasCache: any;
 let previewDataURL: string;
 export const setEraserCursor = (
   canvas: HTMLCanvasElement | null,
+  // App.state.theme
   theme: AppState["theme"],
 ) => {
   const cursorImageSizePx = 20;
 
+  // TODO 添加类型标注
+  // 重新绘制一个 eraser 工具对应的 canvas 的 cursor，并将 dataURL 赋值给 previewDataURL
   const drawCanvas = () => {
+    // 根据 App.state.theme 判断是否为 dark 主题
     const isDarkTheme = theme === THEME.DARK;
+    // 创建一个 canvas 标签并设置相关属性
     eraserCanvasCache = document.createElement("canvas");
     eraserCanvasCache.theme = theme;
     eraserCanvasCache.height = cursorImageSizePx;
     eraserCanvasCache.width = cursorImageSizePx;
-    const context = eraserCanvasCache.getContext("2d")!;
+    // 建立一个 CanvasRenderingContext2D 二维渲染上下文
+    const context = eraserCanvasCache.getContext(
+      "2d",
+    )! as CanvasRenderingContext2D;
+    // 设置线段厚度
     context.lineWidth = 1;
+    // 通过清空子路径列表开始一个新路径
+    // 想创建一个新的路径时，调用此方法
     context.beginPath();
+    // 绘制圆弧路径的方法
+    // 圆弧路径的圆心在 (x, y) 位置，半径为 r，根据anticlockwise （默认为顺时针）指定的方向从 startAngle 开始绘制，到 endAngle 结束。
+    // 角度以弧度表示
+    // void ctx.arc(x, y, radius, startAngle, endAngle, anticlockwise（可选）);
     context.arc(
       eraserCanvasCache.width / 2,
       eraserCanvasCache.height / 2,
@@ -278,16 +293,28 @@ export const setEraserCursor = (
       0,
       2 * Math.PI,
     );
+    // 使用内部方式描述颜色和样式的属性。默认值是 #000 （黑色）。
+    // white: "#ffffff",
+    // black: "#000000",
     context.fillStyle = isDarkTheme ? oc.black : oc.white;
+    // 根据当前的填充样式，填充当前或已存在的路径的方法。采取非零环绕或者奇偶环绕规则。
     context.fill();
+    // 描述画笔（绘制图形）颜色或者样式的属性。默认值是 #000 (black)。
+    // 根据 mdn 文档的样式，fill 应该是填充，stroke 应该是描边
+    // fill 颜色和 darkMode 对应，stroke 颜色和 darkMode 相反
     context.strokeStyle = isDarkTheme ? oc.white : oc.black;
     context.stroke();
+    // 返回一个包含图片展示的 data URI 。可以使用 type 参数其类型，默认为 PNG 格式。图片的分辨率为 96dpi。
+    // Data URLs，即前缀为 data: 协议的 URL，其允许内容创建者向文档中嵌入小文件。
+    // 似乎是不支持 svg 格式导致只能输出 png
     previewDataURL = eraserCanvasCache.toDataURL(MIME_TYPES.svg) as DataURL;
   };
+  // 没有 eraserCanvas 缓存或者该缓存的主题和传入的主题不一致则调用 drawCanvas
   if (!eraserCanvasCache || eraserCanvasCache.theme !== theme) {
     drawCanvas();
   }
 
+  // 如果 canvas 对象（画板 canvas）存在则将 canvas.style.cursor 设定为第二个参数
   setCursor(
     canvas,
     `url(${previewDataURL}) ${cursorImageSizePx / 2} ${
@@ -296,6 +323,7 @@ export const setEraserCursor = (
   );
 };
 
+// 根据当前工具决定设定的鼠标样式
 export const setCursorForShape = (
   canvas: HTMLCanvasElement | null,
   appState: AppState,
@@ -304,13 +332,16 @@ export const setCursorForShape = (
     return;
   }
   if (appState.activeTool.type === "selection") {
+    // canvas.style.cursor = ""; 将 canvas 的鼠标样式设定为默认
     resetCursor(canvas);
   } else if (appState.activeTool.type === "eraser") {
+    // 如果当前工具为 eraser 则根据 App.state.theme 设定鼠标样式
     setEraserCursor(canvas, appState.theme);
     // do nothing if image tool is selected which suggests there's
     // a image-preview set as the cursor
     // Ignore custom type as well and let host decide
   } else if (!["image", "custom"].includes(appState.activeTool.type)) {
+    // 既不是 selection 也不是 eraser 的情况且不是 image 或 custom，则将鼠标样式设定为 crosshair
     canvas.style.cursor = CURSOR_TYPE.CROSSHAIR;
   }
 };

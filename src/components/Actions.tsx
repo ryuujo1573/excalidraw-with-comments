@@ -267,10 +267,13 @@ export const ShapesSwitcher = ({
               multiElement: null,
               selectedElementIds: {},
             });
+            // 根据当前工具决定设定的鼠标样式
             setCursorForShape(canvas, {
               ...appState,
               activeTool: nextActiveTool,
             });
+            // 如果当前工具为 image，则调用 onImageAction
+            // TODO 暂不细究此函数底层
             if (value === "image") {
               onImageAction({ pointerType });
             }
