@@ -24,6 +24,8 @@ class Scene {
   // static methods/props
   // ---------------------------------------------------------------------------
 
+  // WeakMap 对象是一组键/值对的集合，其中的键是弱引用的。其键必须是对象，而值可以是任意的。
+  // 对对象的弱引用是指当该对象应该被 GC 回收时不会阻止 GC 的回收行为。
   private static sceneMapByElement = new WeakMap<ExcalidrawElement, Scene>();
   private static sceneMapById = new Map<string, Scene>();
 

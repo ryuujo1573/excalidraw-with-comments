@@ -369,6 +369,7 @@ export const getShortcutKey = (shortcut: string): string => {
   return shortcut.replace(/\bCtrlOrCmd\b/i, "Ctrl");
 };
 
+// 视口坐标转换为屏幕坐标
 export const viewportCoordsToSceneCoords = (
   { clientX, clientY }: { clientX: number; clientY: number },
   {

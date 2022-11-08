@@ -252,6 +252,7 @@ const doSegmentsIntersect = (p1: Point, q1: Point, p2: Point, q2: Point) => {
 };
 
 // TODO: Rounding this point causes some shake when free drawing
+// 如果存在网格，则计算在网格中的坐标（除了 freedraw）
 export const getGridPoint = (
   x: number,
   y: number,

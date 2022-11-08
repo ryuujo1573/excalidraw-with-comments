@@ -3333,6 +3333,7 @@ class App extends React.Component<AppProps, AppState> {
 
     // State for the duration of a pointer interaction, which starts with a
     // pointerDown event, ends with a pointerUp event (or another pointerDown)
+    // 根据当前 event 记录下触发 pointerdown 事件时的状态
     const pointerDownState = this.initialPointerDownState(event);
 
     if (this.handleDraggingScrollBar(event, pointerDownState)) {
@@ -3642,8 +3643,11 @@ class App extends React.Component<AppProps, AppState> {
   private initialPointerDownState(
     event: React.PointerEvent<HTMLCanvasElement>,
   ): PointerDownState {
+    // 视口坐标转换为屏幕坐标
     const origin = viewportCoordsToSceneCoords(event, this.state);
+    // TODO 大概是返回被选中的元素？
     const selectedElements = getSelectedElements(
+      // 返回 Scene 对象的 nonDeletedElements
       this.scene.getNonDeletedElements(),
       this.state,
     );
@@ -3653,6 +3657,8 @@ class App extends React.Component<AppProps, AppState> {
       origin,
       withCmdOrCtrl: event[KEYS.CTRL_OR_CMD],
       originInGrid: tupleToCoors(
+        // 将数组转换成对象
+        // 如果存在网格，则计算在网格中的坐标（除了 freedraw）
         getGridPoint(origin.x, origin.y, this.state.gridSize),
       ),
       scrollbars: isOverScrollBars(

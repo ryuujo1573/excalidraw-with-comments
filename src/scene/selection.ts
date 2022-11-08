@@ -59,6 +59,7 @@ export const getSelectedElements = (
   includeBoundTextElement: boolean = false,
 ) =>
   elements.filter((element) => {
+    // 如果 App.selectedElementIds 中包含该元素 id，则返回该元素
     if (appState.selectedElementIds[element.id]) {
       return element;
     }

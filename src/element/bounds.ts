@@ -434,6 +434,7 @@ const getLinearElementRotatedBounds = (
 };
 
 // We could cache this stuff
+// 根据元素类型返回元素的边界
 export const getElementBounds = (
   element: ExcalidrawElement,
 ): [number, number, number, number] => {
@@ -490,6 +491,7 @@ export const getElementBounds = (
   return bounds;
 };
 
+//  计算 elements[] 的最小 x y 和最大 x y
 export const getCommonBounds = (
   elements: readonly ExcalidrawElement[],
 ): [number, number, number, number] => {
@@ -503,6 +505,7 @@ export const getCommonBounds = (
   let maxY = -Infinity;
 
   elements.forEach((element) => {
+    // 根据元素类型返回元素的边界
     const [x1, y1, x2, y2] = getElementBounds(element);
     minX = Math.min(minX, x1);
     minY = Math.min(minY, y1);
