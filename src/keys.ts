@@ -1,3 +1,7 @@
+// window.navigator.platform 已经被标记为 Deprecated
+// 推荐使用 navigator.userAgentData.platform
+// 但是此属性还是个实验属性
+// 除了 firefox safari webview 均支持此属性
 export const isDarwin = /Mac|iPod|iPhone|iPad/.test(window.navigator.platform);
 export const isWindows = /^Win/.test(window.navigator.platform);
 export const isAndroid = /\b(android)\b/i.test(navigator.userAgent);
