@@ -66,6 +66,7 @@ const _newElementBase = <T extends ExcalidrawElement>(
   }: ElementConstructorOpts & Omit<Partial<ExcalidrawGenericElement>, "type">,
 ) => {
   const element = {
+    // 测试环境下返回一个递增序列的值，其他环境返回 nanoid
     id: rest.id || randomId(),
     type,
     x,

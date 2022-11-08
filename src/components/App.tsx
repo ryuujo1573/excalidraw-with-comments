@@ -4027,6 +4027,7 @@ class App extends React.Component<AppProps, AppState> {
     pointerDownState: PointerDownState,
   ) => {
     // Begin a mark capture. This does not have to update state yet.
+    // TODO 明明可以用 pointerDownState.originInGrid.x 属性直接访问为什么还要再算一遍？
     const [gridX, gridY] = getGridPoint(
       pointerDownState.origin.x,
       pointerDownState.origin.y,
@@ -4045,10 +4046,15 @@ class App extends React.Component<AppProps, AppState> {
       roughness: this.state.currentItemRoughness,
       opacity: this.state.currentItemOpacity,
       strokeSharpness: this.state.currentItemLinearStrokeSharpness,
+      // 鼠标触发 pointerdown 时 pointerEvent.pressure === 0.5
+      // 即当 pointerEvent.pressure === 0.5 时
+      // 将 simulatePressure 设定为 true
+      // 进行笔压模拟
       simulatePressure: event.pressure === 0.5,
       locked: false,
     });
 
+    // 将该元素设定加入 App.state.selectedElementIds，并将对应值设定为 false
     this.setState((prevState) => ({
       selectedElementIds: {
         ...prevState.selectedElementIds,
@@ -4056,10 +4062,14 @@ class App extends React.Component<AppProps, AppState> {
       },
     }));
 
+    // TODO 笔压相关
+    // 如果模拟笔压则直接返回 element.pressures （newFreeDrawElement 返回为 []）
+    // 否则返回 [...element.pressures, event.pressure]
     const pressures = element.simulatePressure
       ? element.pressures
       : [...element.pressures, event.pressure];
 
+    // TODO 协作
     mutateElement(element, {
       points: [[0, 0]],
       pressures,
