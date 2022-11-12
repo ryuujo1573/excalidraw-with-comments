@@ -43,9 +43,14 @@ export const fileOpen = <M extends boolean | undefined = false>(opts: {
   }, [] as string[]);
 
   return _fileOpen({
+    // 打开窗口中文件类型的描述
+    // e.g. 文本文件(.txt) 中的 '文本文件'
     description: opts.description,
+    // 允许的文件拓展名（需带有前导 '.'）
     extensions,
+    // 允许的 MIME 类型
     mimeTypes,
+    // 是否允许上传多个文件
     multiple: opts.multiple ?? false,
     legacySetup: (resolve, reject, input) => {
       const scheduleRejection = debounce(reject, INPUT_CHANGE_INTERVAL_MS);
